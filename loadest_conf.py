@@ -26,6 +26,7 @@ def write_template(template, filename, **kwargs):
             thisfile=os.path.basename(filename),
             **kwargs
         ))
+        out.write('\n')
 
 
 # YAML source file for generating LOADEST .inp files
@@ -98,3 +99,30 @@ for const in d["constituents"]:
         c=const
     ))
 write_template(header+template, f["header"], **core)
+
+# how many flow observations per day?
+est = pd.read_csv(d["est_file"])
+daily = est.groupby("date").count()
+nobs = daily["time"].values[0]
+
+# the flow / load estimate time file
+template = [
+    "# NOBSPD, number of obs. per day",
+    nobs,
+    "# date time flow",
+]
+write_template(header+template, f["est"], **core)
+out = open(f["est"], 'a')
+for _, row in est.iterrows():
+    out.write("{x[date]} {x[time]} {x[flow]}\n".format(x=row))
+
+# the calibration / observation file
+template = [
+    "# date time flow conc",
+]
+write_template(header+template, f["calib"], **core)
+calib = pd.read_csv(d["calib_file"])
+out = open(f["calib"], 'a')
+for _, row in calib.iterrows():
+    out.write(
+        "{x[date]} {x[time]} {x[flow]} {x[conc]}\n".format(x=row))
