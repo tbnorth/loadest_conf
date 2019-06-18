@@ -118,11 +118,15 @@ for _, row in est.iterrows():
 
 # the calibration / observation file
 template = [
-    "# date time flow conc",
+    "# date time flow conc(s)",
 ]
 write_template(header+template, f["calib"], **core)
 calib = pd.read_csv(d["calib_file"])
 out = open(f["calib"], 'a')
 for _, row in calib.iterrows():
+    consts = [row[i['colname']] for i in d['constituents']]
     out.write(
-        "{x[date]} {x[time]} {x[flow]} {x[conc]}\n".format(x=row))
+        "{x[date]} {x[time]} {x[flow]} {conc}\n".format(
+            x=row,
+            conc=' '.join(str(i) for i in consts),
+        ))

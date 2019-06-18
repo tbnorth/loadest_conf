@@ -9,6 +9,10 @@ seopt: 1
 ldopt: 0
 # Model number, 0-11 or 99, see table 7 page 12
 modno: 9
+# The "calibration" file, i.e. observations on concentration 
+calib_file: some_calib_file.csv
+# The "estimation" file, i.e. times and flows at which to estimate load
+est_file: some_estimation_file.csv
 # Constituents, see page 15
 # colname is name of column in calib_file
 constituents:
@@ -16,10 +20,6 @@ constituents:
    ucflag: 1
    ulflag: 1   
    colname: TP
-# The "calibration" file, i.e. observations on concentration 
-calib_file: some_calib_file.csv
-# The "estimation" file, i.e. times and flows at which to estimate load
-est_file: some_estimation_file.csv
 ...
 # Ignore the next line.  And this one.
 # vim:ft=yaml
