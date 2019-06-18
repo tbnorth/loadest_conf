@@ -5,7 +5,7 @@ Generate [LOADEST](https://water.usgs.gov/software/loadest/) config. files from 
 A Python program to generate the four "FORTRAN" flavored input files
 used by LOADEST.  It's easier to edit the single human friendly
 [YAML file](./loadest_conf.template) than to create the
-[four `.inp` files](#example_outputs) by hand, particularly for
+[four `.inp` files](#example-outputs) by hand, particularly for
 multiple rivers with the same setup.
 
 First, copy the template file [loadest_conf.template](./loadest_conf.template)
@@ -128,7 +128,7 @@ Phosphorus                                       1    1
 16
 # date time flow
 19920401 1301 270
-19920401 1301 270
+19920401 1701 270
 ...
 ```   
 
