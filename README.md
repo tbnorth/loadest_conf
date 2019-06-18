@@ -40,6 +40,8 @@ nile/
 using the Nile inputs listed on the command line. The rest of the setup
 would be taken from `mississippi.yaml`.
 
+Running LOADEST in the created folder will generate outputs.
+
 ## Usage
 
 ```
