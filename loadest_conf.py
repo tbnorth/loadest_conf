@@ -13,6 +13,7 @@ import yaml
 
 
 def make_parser():
+    """Make a Python `argparse` command line argument parser."""
 
     parser = argparse.ArgumentParser(
         description="""Generate input files for LOADEST"""
@@ -93,7 +94,7 @@ def make_files(opt):
     # for `some_run.yaml` output goes in folder `some_run`
     # which must be empty
     out_dir, ext = os.path.splitext(in_file)
-    if opt.run_name:
+    if opt.run_name:  # command line override
         out_dir = opt.run_name
     if os.path.exists(out_dir):
         if os.listdir(out_dir):
@@ -109,17 +110,21 @@ def make_files(opt):
 
     # stuff common to all output files
     hashes = '#' * 70
-    created = time.asctime()
+    core = {
+        'base': os.path.basename(out_dir),
+        'source': in_file,
+        'created': time.asctime(),
+        'out_dir': out_dir,
+    }
+    # `thisfile` is set in write_template()
     header = [
         hashes,
         "# {thisfile} created {created}",
         "# for LOADEST by loadest_conf.py",
-        "# from {source}.",
+        "# from {source}",
+        "# for run \"{out_dir}\".",
         hashes,
     ]
-    core = dict(
-        base=os.path.basename(out_dir), source=in_file, created=created
-    )
 
     # the control.inp file, just lists the other three
     template = [
