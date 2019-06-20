@@ -98,8 +98,10 @@ def do_plots(opt):
     y1 = est['mle'] / cm * 1000
 
     plt.scatter(obs['datetime'].values, y0)
-    plt.plot(est['datetime'], y1)
+    plt.plot(est['datetime'], y1, c='r')
     # plt.show()
+    ax2 = plt.gca().twinx()
+    ax2.plot(est['datetime'], est['flow'])
     plt.gcf().set_size_inches((40, 6))
     plt.savefig("obsest.pdf")
 
