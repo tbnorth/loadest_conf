@@ -61,6 +61,25 @@ def nocomment(filename):
             if not line.strip().startswith('#'):
                 yield line
 
+def get_est(filename):
+    data = [i.split() for i in nocomment(filename) if i.strip()]
+    while not data[0][0].startswith('---'):
+        del data[0]
+    del data[0]
+
+    est = pd.DataFrame(
+        data=data, columns=('date', 'time', 'flow', 'amle', 'mle', 'ladm')
+    )
+    for col in 'flow', 'amle', 'mle', 'ladm':
+        est[col] = est[col].astype(float)
+    est['datetime'] = [
+        parse("%s %04d" % (i.date, int(i.time))) for i in est.itertuples()
+    ]
+    cf_in_cm = 35.315
+    cm = est['flow'] / cf_in_cm * 24 * 3600
+    for col in 'amle', 'mle', 'ladm':
+        est[col + '_mgL'] = est[col] / cm * 1000
+    return est
 
 def do_plots(opt):
     """Make plots for LOADEST data
@@ -79,23 +98,9 @@ def do_plots(opt):
     for col in 'flow', 'conc':
         obs[col] = obs[col].astype(float)
 
-    data = [i.split() for i in nocomment(opt.ind) if i.strip()]
-    while not data[0][0].startswith('---'):
-        del data[0]
-    del data[0]
-
-    est = pd.DataFrame(
-        data=data, columns=('date', 'time', 'flow', 'amle', 'mle', 'ladm')
-    )
-    for col in 'flow', 'amle', 'mle', 'ladm':
-        est[col] = est[col].astype(float)
-    est['datetime'] = [
-        parse("%s %04d" % (i.date, int(i.time))) for i in est.itertuples()
-    ]
+    est = get_est(opt.ind)
     y0 = obs['conc']
-    cf_in_cm = 35.315
-    cm = est['flow'] / cf_in_cm * 24 * 3600
-    y1 = est['mle'] / cm * 1000
+    y1 = est['mle_mgL']
 
     plt.scatter(obs['datetime'].values, y0)
     plt.plot(est['datetime'], y1, c='r')

@@ -36,6 +36,15 @@ def make_parser():
         help="Calibration file, observations of concentrations",
         metavar="CSVFILE",
     )
+    parser.add_argument(
+        '--modno',
+        help="Override model number in CONFFILE",
+    )
+    parser.add_argument(
+        '--over-write',
+        help="Over-write existing outputs",
+        action='store_true',
+    )
 
     return parser
 
@@ -86,10 +95,10 @@ def make_files(opt):
     with open(in_file) as in_data:
         d = yaml.safe_load(in_data)
     d["nconst"] = len(d["constituents"])
-    if opt.est_file:
-        d["est_file"] = opt.est_file
-    if opt.calib_file:
-        d["calib_file"] = opt.calib_file
+    # apply command line overrides
+    for ovr in "est_file", "calib_file", "modno":
+        if getattr(opt, ovr) is not None:
+            d[ovr] = getattr(opt, ovr)
 
     # for `some_run.yaml` output goes in folder `some_run`
     # which must be empty
@@ -97,7 +106,7 @@ def make_files(opt):
     if opt.run_name:  # command line override
         out_dir = opt.run_name
     if os.path.exists(out_dir):
-        if os.listdir(out_dir):
+        if not opt.over_write and os.listdir(out_dir):
             print("Non-empty '%s' exists, aborting" % out_dir)
             exit(10)
     else:
