@@ -169,18 +169,18 @@ def make_files(opt):
     template = ["# NOBSPD, number of obs. per day", nobs, "# date time flow"]
     write_template(header + template, f["est"], **core)
     out = open(f["est"], 'a')
-    for _, row in est.iterrows():
-        out.write("{x[date]} {x[time]} {x[flow]}\n".format(x=row))
+    for row in est.itertuples():
+        out.write("{x.date} {x.time} {x.flow}\n".format(x=row))
 
     # the calibration / observation file
     template = ["# date time flow conc(s)"]
     write_template(header + template, f["calib"], **core)
     calib = pd.read_csv(d["calib_file"])
     out = open(f["calib"], 'a')
-    for _, row in calib.iterrows():
-        consts = [row[i['colname']] for i in d['constituents']]
+    for row in calib.itertuples():
+        consts = [getattr(row, i['colname']) for i in d['constituents']]
         out.write(
-            "{x[date]} {x[time]} {x[flow]} {conc}\n".format(
+            "{x.date} {x.time} {x.flow} {conc}\n".format(
                 x=row, conc=' '.join(str(i) for i in consts)
             )
         )
