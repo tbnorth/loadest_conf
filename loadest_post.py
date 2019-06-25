@@ -10,6 +10,7 @@ from collections import defaultdict, namedtuple
 from dateutil.parser import parse
 from matplotlib import pyplot as plt
 from pandas.plotting import register_matplotlib_converters
+
 register_matplotlib_converters()
 
 
@@ -21,7 +22,9 @@ def make_parser():
     )
 
     parser.add_argument('obs', help="Observation (calibration) INPut file")
-    parser.add_argument('ind', help="INDividual outputs .ind output file")
+    parser.add_argument(
+        'ind', nargs='+', help="INDividual outputs .ind output file"
+    )
 
     return parser
 
@@ -61,6 +64,7 @@ def nocomment(filename):
             if not line.strip().startswith('#'):
                 yield line
 
+
 def get_est(filename):
     data = [i.split() for i in nocomment(filename) if i.strip()]
     while not data[0][0].startswith('---'):
@@ -81,6 +85,7 @@ def get_est(filename):
         est[col + '_mgL'] = est[col] / cm * 1000
     return est
 
+
 def do_plots(opt):
     """Make plots for LOADEST data
 
@@ -98,17 +103,21 @@ def do_plots(opt):
     for col in 'flow', 'conc':
         obs[col] = obs[col].astype(float)
 
-    est = get_est(opt.ind)
     y0 = obs['conc']
-    y1 = est['mle_mgL']
+    plt.scatter(obs['datetime'].values, y0, label='observed', s=0.5)
 
-    plt.scatter(obs['datetime'].values, y0)
-    plt.plot(est['datetime'], y1, c='r')
+    for est_source in opt.ind:
+        est = get_est(est_source)
+        y1 = est['mle_mgL']
+        plt.plot(est['datetime'], y1, label=est_source, lw=0.6)
     # plt.show()
+    plt.legend()
     ax2 = plt.gca().twinx()
-    ax2.plot(est['datetime'], est['flow'])
-    plt.gcf().set_size_inches((40, 6))
+    ax2.plot(est['datetime'], est['flow'], label='flow', ls=':', c='k', lw=0.2)
+    plt.gcf().set_size_inches((50, 6))
+    # plt.legend()
     plt.savefig("obsest.pdf")
+
 
 def main():
     opt = get_options()
