@@ -6,7 +6,6 @@ Terry N. Brown Brown.TerryN@epa.gov Thu 06/20/2019
 
 import argparse
 import pandas as pd
-from collections import defaultdict, namedtuple
 from dateutil.parser import parse
 from matplotlib import pyplot as plt
 from pandas.plotting import register_matplotlib_converters

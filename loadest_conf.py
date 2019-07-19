@@ -8,6 +8,7 @@ import argparse
 import os
 import time
 
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -171,6 +172,7 @@ def make_files(opt):
 
     # how many flow observations per day?
     est = pd.read_csv(d["est_file"])
+    est = est[np.isfinite(est.flow.astype(float))]
     daily = est.groupby("date").count()
     nobs = daily["time"].values[0]
 
@@ -179,18 +181,20 @@ def make_files(opt):
     write_template(header + template, f["est"], **core)
     out = open(f["est"], 'a')
     for row in est.itertuples():
-        out.write("{x.date} {x.time} {x.flow}\n".format(x=row))
+        out.write("{x.date} {x.time} {x.flow:.2f}\n".format(x=row))
 
     # the calibration / observation file
     template = ["# date time flow conc(s)"]
     write_template(header + template, f["calib"], **core)
     calib = pd.read_csv(d["calib_file"])
+    calib = calib[np.isfinite(calib.flow.astype(float))]
+    calib = calib[np.isfinite(calib.conc.astype(float))]
     out = open(f["calib"], 'a')
     for row in calib.itertuples():
         consts = [getattr(row, i['colname']) for i in d['constituents']]
         out.write(
-            "{x.date} {x.time} {x.flow} {conc}\n".format(
-                x=row, conc=' '.join(str(i) for i in consts)
+            "{x.date} {x.time} {x.flow:.2f} {conc}\n".format(
+                x=row, conc=' '.join(("%.2f" % i) for i in consts)
             )
         )
 
