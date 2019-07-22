@@ -9,7 +9,8 @@ import pandas as pd
 from dateutil.parser import parse
 from matplotlib import pyplot as plt
 from pandas.plotting import register_matplotlib_converters
-from get_db import get_con_cur
+from light_orm import light_orm as lo
+from itertools import zip_longest
 
 register_matplotlib_converters()
 
@@ -17,7 +18,8 @@ DB_SQL = [
     """create table est (
     site int,
     date date,
-    flow real
+    flow real,
+    conc real
     )""",
     """create table obs (
     site int,
@@ -26,8 +28,10 @@ DB_SQL = [
     conc real
     )""",
     """create table site (
-    site int,
-    name text
+    site integer primary key,
+    name text,
+    lat real,
+    lon real
     )""",
     """create index obs_date_idx on obs(date)""",
     """create index est_date_idx on est(date)""",
@@ -91,6 +95,7 @@ def nocomment(filename):
 
 
 def get_est(filename):
+    """read data from estimation file"""
     data = [i.split() for i in nocomment(filename) if i.strip()]
     while not data[0][0].startswith('---'):
         del data[0]
@@ -117,6 +122,11 @@ def do_plots(opt):
     Args:
         opt (argparse.Namespace): command line options
     """
+    if opt.site:
+        con, cur = lo.get_con_cur(opt.db, DB_SQL)
+        site, new = lo.get_or_make_pk(cur, 'site', {'name': opt.site})
+        con.commit()
+
     obs = pd.DataFrame(
         data=[i.split() for i in nocomment(opt.obs)],
         columns=('date', 'time', 'flow', 'conc'),
@@ -130,18 +140,43 @@ def do_plots(opt):
 
     y0 = obs['conc']
     plt.scatter(obs['datetime'].values, y0, label='observed', s=0.5)
+    if opt.site:
+        cur.executemany(
+            "insert into obs (site, date, flow, conc) values (?,?,?,?)",
+            zip_longest(
+                [],
+                [i.strftime("%Y-%m-%d") for i in obs['datetime']],
+                obs['flow'],
+                y0,
+                fillvalue=site,
+            ),
+        )
+        con.commit()
 
     for est_source in opt.ind:
         est = get_est(est_source)
         y1 = est['mle_mgL']
         plt.plot(est['datetime'], y1, label=est_source, lw=0.6)
-    # plt.show()
+        if opt.site:
+            cur.executemany(
+                "insert into est (site, date, flow, conc) values (?,?,?,?)",
+                zip_longest(
+                    [],
+                    [i.strftime("%Y-%m-%d") for i in est['datetime']],
+                    est['flow'],
+                    y1,
+                    fillvalue=site,
+                ),
+            )
+            con.commit()
+        # plt.show()
     plt.legend()
     ax2 = plt.gca().twinx()
     ax2.plot(est['datetime'], est['flow'], label='flow', ls=':', c='k', lw=0.2)
     plt.gcf().set_size_inches((50, 6))
     # plt.legend()
     plt.savefig("obsest.pdf")
+
 
 
 def main():
