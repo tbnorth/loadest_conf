@@ -28,7 +28,7 @@ DB_SQL = [
     conc real
     )""",
     """create table site (
-    site integer primary key,
+    site serial,
     name text,
     lat real,
     lon real
@@ -142,7 +142,7 @@ def do_plots(opt):
     plt.scatter(obs['datetime'].values, y0, label='observed', s=0.5)
     if opt.site:
         cur.executemany(
-            "insert into obs (site, date, flow, conc) values (?,?,?,?)",
+            "insert into obs (site, date, flow, conc) values (%s,%s,%s,%s)",
             zip_longest(
                 [],
                 [i.strftime("%Y-%m-%d") for i in obs['datetime']],
@@ -159,7 +159,7 @@ def do_plots(opt):
         plt.plot(est['datetime'], y1, label=est_source, lw=0.6)
         if opt.site:
             cur.executemany(
-                "insert into est (site, date, flow, conc) values (?,?,?,?)",
+                "insert into est (site, date, flow, conc) values (%s,%s,%s,%s)",
                 zip_longest(
                     [],
                     [i.strftime("%Y-%m-%d") for i in est['datetime']],
