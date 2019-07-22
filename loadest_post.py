@@ -9,8 +9,32 @@ import pandas as pd
 from dateutil.parser import parse
 from matplotlib import pyplot as plt
 from pandas.plotting import register_matplotlib_converters
+from get_db import get_con_cur
 
 register_matplotlib_converters()
+
+DB_SQL = [
+    """create table est (
+    site int,
+    date date,
+    flow real
+    )""",
+    """create table obs (
+    site int,
+    date date,
+    flow real,
+    conc real
+    )""",
+    """create table site (
+    site int,
+    name text
+    )""",
+    """create index obs_date_idx on obs(date)""",
+    """create index est_date_idx on est(date)""",
+    """create index obs_site_idx on obs(site)""",
+    """create index est_site_idx on est(site)""",
+    """create index site_site_idx on site(site)""",
+]
 
 
 def make_parser():
@@ -24,6 +48,8 @@ def make_parser():
     parser.add_argument(
         'ind', nargs='+', help="INDividual outputs .ind output file"
     )
+    parser.add_argument('--db', help="DB for storing site data")
+    parser.add_argument('--site', help="site name for storing site data")
 
     return parser
 

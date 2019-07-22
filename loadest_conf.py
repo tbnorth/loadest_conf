@@ -91,6 +91,18 @@ def write_template(template, filename, **kwargs):
 
 
 def make_files(opt):
+
+    if opt.site:
+        con, cur = get_con_cur(opt.db, DB_SQL)
+        cur.execute("select site from site where name = ?", [opt.site])
+        site_pk = cur.fetchall()
+        if not site_pk:
+            cur.execute("insert into site (name) values (?)", [opt.site])
+            con.commit()
+            cur.execute("select site from site where name = ?", [opt.site])
+            site_pk = cur.fetchall()
+            site_pk = site_pk[0]
+
     # YAML source file for generating LOADEST .inp files
     in_file = opt.source
     with open(in_file) as in_data:
