@@ -46,6 +46,10 @@ def make_parser():
         help="Over-write existing outputs",
         action='store_true',
     )
+    parser.add_argument(
+        '--site',
+        help="Name of site to pull from DB data",
+    )
 
     return parser
 
