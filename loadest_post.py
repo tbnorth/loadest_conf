@@ -5,6 +5,7 @@ Terry N. Brown Brown.TerryN@epa.gov Thu 06/20/2019
 """
 
 import argparse
+import json
 import pandas as pd
 from dateutil.parser import parse
 from matplotlib import pyplot as plt
@@ -29,6 +30,7 @@ DB_SQL = [
     )""",
     """create table site (
     site serial,
+    site_num text,
     name text,
     lat real,
     lon real
@@ -124,7 +126,17 @@ def do_plots(opt):
     """
     if opt.site:
         con, cur = lo.get_con_cur(opt.db, DB_SQL)
-        site, new = lo.get_or_make_pk(cur, 'site', {'name': opt.site})
+        info = json.load(open("info.json"))
+        site, new = lo.get_or_make_pk(
+            cur,
+            'site',
+            {
+                'site_num': opt.site,
+                'name': info['name'],
+                'lat': info['lat'],
+                'lon': info['lon'],
+            },
+        )
         con.commit()
 
     obs = pd.DataFrame(
@@ -173,10 +185,14 @@ def do_plots(opt):
     plt.legend()
     ax2 = plt.gca().twinx()
     ax2.plot(est['datetime'], est['flow'], label='flow', ls=':', c='k', lw=0.2)
+    if opt.site:
+        plt.title(
+            "%s %s %s,%s"
+            % (info['site'], info['name'], info['lat'], info['lon'])
+        )
     plt.gcf().set_size_inches((50, 6))
     # plt.legend()
     plt.savefig("obsest.pdf")
-
 
 
 def main():

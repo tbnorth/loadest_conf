@@ -37,19 +37,11 @@ def make_parser():
         help="Calibration file, observations of concentrations",
         metavar="CSVFILE",
     )
+    parser.add_argument('--modno', help="Override model number in CONFFILE")
     parser.add_argument(
-        '--modno',
-        help="Override model number in CONFFILE",
+        '--over-write', help="Over-write existing outputs", action='store_true'
     )
-    parser.add_argument(
-        '--over-write',
-        help="Over-write existing outputs",
-        action='store_true',
-    )
-    parser.add_argument(
-        '--site',
-        help="Name of site to pull from DB data",
-    )
+    parser.add_argument('--site', help="Name of site to pull from DB data")
 
     return parser
 
@@ -197,7 +189,13 @@ def make_files(opt):
     write_template(header + template, f["est"], **core)
     out = open(f["est"], 'a')
     for row in est.itertuples():
-        out.write("{x.date} {x.time} {x.flow:.2f}\n".format(x=row))
+        date_ = ''.join(i for i in str(row.date) if i.isdigit())
+        time_ = ''.join(i for i in str(row.time) if i.isdigit())
+        out.write(
+            "{date} {time} {row.flow:.2f}\n".format(
+                date=date_, time=time_, row=row
+            )
+        )
 
     # the calibration / observation file
     template = ["# date time flow conc(s)"]
@@ -208,9 +206,15 @@ def make_files(opt):
     out = open(f["calib"], 'a')
     for row in calib.itertuples():
         consts = [getattr(row, i['colname']) for i in d['constituents']]
+        # remove :, /, -, etc. from dates and times
+        date_ = ''.join(i for i in str(row.date) if i.isdigit())
+        time_ = ''.join(i for i in str(row.time) if i.isdigit())
         out.write(
-            "{x.date} {x.time} {x.flow:.2f} {conc}\n".format(
-                x=row, conc=' '.join(("%.2f" % i) for i in consts)
+            "{date} {time} {flow:.2f} {conc}\n".format(
+                date=date_,
+                time=time_,
+                flow=row.flow,
+                conc=' '.join(("%.2f" % i) for i in consts),
             )
         )
 
