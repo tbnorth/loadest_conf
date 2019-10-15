@@ -19,21 +19,21 @@ DB_SQL = [
     """create table est (
     site int,
     date date,
-    flow real,
-    conc real
+    flow double precision,
+    conc double precision
     )""",
     """create table obs (
     site int,
     date date,
-    flow real,
-    conc real
+    flow double precision,
+    conc double precision
     )""",
     """create table site (
     site serial,
     site_num text,
     name text,
-    lat real,
-    lon real
+    lat double precision,
+    lon double precision
     )""",
     """create index obs_date_idx on obs(date)""",
     """create index est_date_idx on est(date)""",
@@ -138,6 +138,7 @@ def do_plots(opt):
             },
         )
         con.commit()
+        assert site, (site, new, opt.site, info)
 
     obs = pd.DataFrame(
         data=[i.split() for i in nocomment(opt.obs)],
